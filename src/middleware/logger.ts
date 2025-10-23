@@ -1,6 +1,6 @@
 import winston from "winston";
 
-// Define custom log levels
+// Define custom log levels and colors
 const logLevels = {
   error: 0,
   warn: 1,
@@ -9,7 +9,6 @@ const logLevels = {
   debug: 4,
 };
 
-// Define custom colors for log levels
 const logColors = {
   error: "red",
   warn: "yellow",
@@ -18,39 +17,34 @@ const logColors = {
   debug: "white",
 };
 
-// Add colors to winston
+// Add custom colors to winston
 winston.addColors(logColors);
 
 // Create winston logger
 const logger = winston.createLogger({
   levels: logLevels,
-  format: winston.format.combine(
-    winston.format.colorize(), // Add color to logs in console
-    winston.format.timestamp(), // Add timestamp to logs
-    winston.format.printf(({ timestamp, level, message }) => {
-      return `${timestamp} [${level}]: ${message}`; // Format log message
-    })
-  ),
+  // Tidak perlu format di sini jika akan didefinisikan per transport
   transports: [
-    // Log to console with color and simple format
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(), // Colorize the logs for the console
-        winston.format.simple() // Use a simple format in the console
-      ),
-    }),
-    // Log to file with JSON format
+    // Log ke file dalam format JSON
     new winston.transports.File({
       filename: "logs/app.log",
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+    }),
+    // Log ke console dengan format yang diinginkan
+    new winston.transports.Console({
       format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json() // Store logs in JSON format for easier processing
+        winston.format.colorize({ all: true }), // Colorize semua level
+        winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        winston.format.printf(({ timestamp, level, message }) => {
+          // Format yang Anda inginkan
+          return `${timestamp} [${level}]: ${message}`;
+        })
       ),
     }),
   ],
 });
 
-// Set default log level
-logger.level = "info"; // Default level is 'info'
+// Set default log level to 'info'
+logger.level = "info";
 
 export default logger;

@@ -1,7 +1,8 @@
 import { Router } from "express";
+import userRoutes from "./userRoutes";
 
 const router = Router();
 
-// Definisikan route di sini
+router.use("/users", userRoutes);
 
 export default router;
