@@ -6,7 +6,6 @@ import logger from "../middleware/logger";
 import { AuthenticatedRequest } from "../types/index";
 
 export const register = async (req: Request, res: Response) => {
-  logger.info("POST /api/users/register"); // Menandakan endpoint yang dipanggil
   try {
     const user = await registerUser(req.body);
 
@@ -32,7 +31,6 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  logger.info("POST /api/users/login"); // Menandakan endpoint yang dipanggil
   try {
     const { email, password: plainPassword } = req.body;
     const user = await loginUser(email, plainPassword);
@@ -55,11 +53,12 @@ export const login = async (req: Request, res: Response) => {
 // get users
 
 export const getAllUsersController = async (req: Request, res: Response) => {
-  logger.info("GET /api/users");
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const result = await getAllUsersPaginated(page, limit);
+    const searchQuery = req.query.search as string | undefined;
+
+    const result = await getAllUsersPaginated(page, limit, searchQuery);
     res.json(result);
   } catch (error: any) {
     logger.error("Error fetching users: " + error.message);
@@ -68,7 +67,6 @@ export const getAllUsersController = async (req: Request, res: Response) => {
 };
 
 export const getUserByIdController = async (req: Request, res: Response) => {
-  logger.info("GET /api/users/:id");
   try {
     const userId = parseInt(req.params.id);
     const user = await getUserById(userId);
@@ -80,7 +78,6 @@ export const getUserByIdController = async (req: Request, res: Response) => {
 };
 
 export const getMeController = async (req: AuthenticatedRequest, res: Response) => {
-  logger.info("GET /api/users/me");
   try {
     const userId = req.user!.id;
     const user = await getMyProfile(userId);
@@ -92,7 +89,6 @@ export const getMeController = async (req: AuthenticatedRequest, res: Response) 
 };
 
 export const updateUserRoleController = async (req: Request, res: Response) => {
-  logger.info("PATCH /api/users/:id/role");
   try {
     const userId = parseInt(req.params.id);
     const { roleName } = req.body;
@@ -105,7 +101,6 @@ export const updateUserRoleController = async (req: Request, res: Response) => {
 };
 
 export const updateMyProfileController = async (req: AuthenticatedRequest, res: Response) => {
-  logger.info("PATCH /api/users/me");
   try {
     const userId = req.user!.id;
     const updatedUser = await updateMyProfile(userId, req.body);
@@ -117,7 +112,6 @@ export const updateMyProfileController = async (req: AuthenticatedRequest, res: 
 };
 
 export const updateMyPasswordController = async (req: AuthenticatedRequest, res: Response) => {
-  logger.info("PATCH /api/users/me/password");
   try {
     const userId = req.user!.id;
     const { currentPassword, newPassword } = req.body;
@@ -130,7 +124,6 @@ export const updateMyPasswordController = async (req: AuthenticatedRequest, res:
 };
 
 export const updateMyProfilePictureController = async (req: AuthenticatedRequest, res: Response) => {
-  logger.info("PATCH /api/users/me/picture");
   try {
     const userId = req.user!.id;
     // Middleware uploadProfilePicture sudah menyediakan req.file

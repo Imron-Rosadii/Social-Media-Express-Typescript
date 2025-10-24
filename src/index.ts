@@ -6,6 +6,8 @@ import { PrismaClient } from "./generated/prisma";
 import { Request, Response } from "express";
 import logger from "./middleware/logger";
 import userRoutes from "./routes/userRoutes";
+import logRequest from "./middleware/loggerMiddleware";
+import followRoutes from "./routes/followRoutes";
 
 dotenv.config();
 
@@ -21,7 +23,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware untuk logging request
+app.use(logRequest);
+
 app.use("/api/users", userRoutes);
+app.use("/api/users", followRoutes);
 
 app.use((req: Request, res: Response) => {
   logger.error("Route not found: " + req.method + " " + req.originalUrl);
