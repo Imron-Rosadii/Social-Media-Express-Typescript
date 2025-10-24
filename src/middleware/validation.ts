@@ -19,7 +19,6 @@ const loginSchema = Joi.object({
 });
 
 export const validateRegister = (req: Request, res: Response, next: NextFunction) => {
-  logger.warn("API Call: " + req.method + " " + req.originalUrl);
   const { error } = registerSchema.validate(req.body);
   if (error) {
     logger.error("Validation error: " + error.details[0].message);
@@ -29,7 +28,6 @@ export const validateRegister = (req: Request, res: Response, next: NextFunction
 };
 
 export const validateLogin = (req: Request, res: Response, next: NextFunction) => {
-  logger.warn("API Call: " + req.method + " " + req.originalUrl);
   const { error } = loginSchema.validate(req.body);
   if (error) {
     logger.error("Validation error: " + error.details[0].message);
@@ -48,7 +46,6 @@ const paginationSchema = Joi.object({
 
 // Middleware validasi untuk pagination
 export const validatePagination = (req: Request, res: Response, next: NextFunction) => {
-  logger.warn("API Call: " + req.method + " " + req.originalUrl);
   const { error } = paginationSchema.validate(req.query);
   if (error) {
     logger.error("Validation error: " + error.details[0].message);

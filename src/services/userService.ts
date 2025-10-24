@@ -15,7 +15,7 @@ export const registerUser = async (userData: { username: string; email: string; 
 
   // Cek apakah password dan konfirmasi password cocok
   if (plainPassword !== confirmPassword) {
-    console.error("Password and confirm password do not match.");
+    logger.error("Password and confirm password do not match.");
     throw new Error("Passwords do not match.");
   }
 
@@ -24,7 +24,7 @@ export const registerUser = async (userData: { username: string; email: string; 
   });
 
   if (existingUser) {
-    console.error("Email or username already exists.");
+    logger.error("Email or username already exists.");
     throw new Error("Email or username already exists.");
   }
 
@@ -96,16 +96,27 @@ export const loginUser = async (email: string, password: string) => {
 };
 
 // get user
-
-// src/services/userService.ts
-
-export const getAllUsersPaginated = async (page: number, limit: number) => {
+//  http://localhost:3000/api/users?search=satria
+//  http://localhost:3000/api/users?page=2&limit=5&search=satria
+// http://localhost:3000/api/users?page=1&limit=10
+export const getAllUsersPaginated = async (page: number, limit: number, searchQuery: string | undefined) => {
   const skip = (page - 1) * limit;
+
+  // Membuat query filter berdasarkan searchQuery
+  const whereFilter = searchQuery
+    ? {
+        OR: [
+          { username: { contains: searchQuery, mode: "insensitive" as const } }, // Pencarian di username dengan case insensitive
+          { fullName: { contains: searchQuery, mode: "insensitive" as const } }, // Pencarian di fullName dengan case insensitive
+        ],
+      }
+    : {}; // Jika tidak ada searchQuery, maka tidak ada filter pencarian
+
   const [users, totalCount] = await Promise.all([
     prisma.user.findMany({
+      where: whereFilter, // Terapkan filter pencarian
       skip,
       take: limit,
-      // 1. Hapus 'select', tapi tambahkan 'include' untuk data terkait
       include: {
         userRoles: {
           include: {
@@ -115,18 +126,20 @@ export const getAllUsersPaginated = async (page: number, limit: number) => {
       },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.user.count(),
+    prisma.user.count({
+      where: whereFilter, // Hitung berdasarkan filter pencarian
+    }),
   ]);
 
-  // 2. Buat mapping untuk menghapus passwordHash dari setiap user
+  // Mapping untuk menghapus password dari setiap user
   const usersWithoutPassword = users.map((user) => {
-    // Destructuring untuk memisahkan passwordHash
     const { password, ...userWithoutSensitiveData } = user;
     return userWithoutSensitiveData;
   });
 
   const totalPages = Math.ceil(totalCount / limit);
 
+  logger.info(`Fetched users for page ${page}: ${JSON.stringify(usersWithoutPassword)}`);
   return {
     users: usersWithoutPassword, // Kembalikan array yang sudah bersih
     totalPages,
@@ -251,6 +264,7 @@ export const updateMyPassword = async (userId: number, currentPassword: string, 
 };
 
 export const updateMyProfilePicture = async (userId: number, imageUrl: string) => {
+  logger.info(`Updating profile picture for user ${userId}`);
   return await prisma.user.update({
     where: { id: userId },
     data: { profilePicture: imageUrl },

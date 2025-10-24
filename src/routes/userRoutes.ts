@@ -14,7 +14,7 @@ router.post("/register", validateRegister, register);
 router.post("/login", validateLogin, login);
 
 // Route Admin
-router.get("/", authenticateToken, checkRole("Admin"), getAllUsersController);
+router.get("/", authenticateToken, getAllUsersController);
 router.patch("/:id/role", authenticateToken, checkRole("Admin"), updateUserRoleController);
 
 // Route User (untuk diri sendiri)
